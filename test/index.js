@@ -10,36 +10,44 @@ describe("pug browser", function(){
     this.timeout(10000);
     this.slow(8000);
 
-  before(function(done){
-    app = express();
-    app.use(jade_browser('/template.js', path.join('template', '**/*.pug'), {
-      root: __dirname // Only necessary because we are not using this from node_modules
-    }));
-    app.listen(3003, function() {
-      done();
-    });
-  });
+    describe("default options", function(){
+        var server;
+        before(function(done){
+            app = express();
+            app.use(jade_browser('/template.js', path.join('template', '**/*.pug'), {
+                root: __dirname // Only necessary because we are not using this from node_modules
+            }));
+            server = app.listen(3003, function() {
+                done();
+            });
+        });
 
-  it('creates an object', function(done){
-    expect(app).to.exist;
-    superagent.get('http://localhost:3003/template.js').end(function(err,res){
-        expect(res.status).to.equal(200);
-        var s = res.text.toString();
-        expect(s).to.contain('<h1>test</h1>');
-        expect(s).to.contain('template/test.pug"');
-        done();
-    });
-  });
+        after('tear server down', function(){server.close();});
 
-    it('renders an object', function(done){
-        superagent.get('http://localhost:3003/template.js').end(function(err,res){
-            var s = new vm.Script(res.text.toString());
-            var c = new vm.createContext({});
-            s.runInContext(c);
-            var f = c.pug.templates['template/test.pug'];
-            expect(f()).to.contain('<h1>test</h1>');
-            done();
-    });
+        it('creates an object', function(done){
+            expect(app).to.exist;
+            superagent
+                .get('http://localhost:3003/template.js')
+                .end(function(err,res){
+                    expect(res.status).to.equal(200);
+                    var s = res.text.toString();
+                    expect(s).to.contain('<h1>test</h1>');
+                    expect(s).to.contain('template/test.pug"');
+                    done();
+                });
+        });
+
+        it('renders an object', function(done){
+            superagent.get('http://localhost:3003/template.js').end(function(err,res){
+                var s = new vm.Script(res.text.toString());
+                var c = new vm.createContext({});
+                s.runInContext(c);
+                var f = c.pug.templates['template/test.pug'];
+                expect(f()).to.contain('<h1>test</h1>');
+                done();
+            });
+
+        });
 
     });
 
@@ -58,9 +66,7 @@ describe("pug browser", function(){
             server = app.listen(3004,done);
         });
 
-        after('tear down server', function(){
-            server.close();
-        });
+        after('tear down server', function(){server.close();});
 
         it('allows a preprocess option', function(done){
 
@@ -92,6 +98,49 @@ describe("pug browser", function(){
             });
         });
     });
+
+    describe("change options", function(){
+        var server;
+        before(function(done){
+            app = express();
+            app.use(jade_browser('/template.js', path.join('template', '**/*'), {
+                root: __dirname, // Only necessary because we are not using this from node_modules
+                namespace: 'jade',
+                ext: 'jade'
+            }));
+            server = app.listen(3003, function() {
+                done();
+            });
+        });
+
+        after('tear server down', function(){server.close();});
+
+        it('creates an object', function(done){
+            expect(app).to.exist;
+            superagent
+                .get('http://localhost:3003/template.js')
+                .end(function(err,res){
+                    expect(res.status).to.equal(200);
+                    var s = res.text.toString();
+                    expect(s).to.contain('<h1>test</h1>');
+                    expect(s).to.contain('template/test.jade"');
+                    done();
+                });
+        });
+
+        it('renders an object', function(done){
+            superagent.get('http://localhost:3003/template.js').end(function(err,res){
+                var s = new vm.Script(res.text.toString());
+                var c = new vm.createContext({});
+                s.runInContext(c);
+                var f = c.jade.templates['template/test.jade'];
+                expect(f()).to.contain('<h1>test</h1>');
+                done();
+            });
+
+        });
+
+    })
 
 
 });
