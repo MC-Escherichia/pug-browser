@@ -135,6 +135,9 @@ describe("pug browser", function(){
                 s.runInContext(c);
                 var f = c.jade.templates['template/test.jade'];
                 expect(f()).to.contain('<h1>test</h1>');
+
+                var render = f();
+                expect(render).to.contain('<h3>testing3</h3>');
                 done();
             });
 

@@ -1,11 +1,11 @@
 var fs = require('fs')
   , path = require('path')
-  , pug = require('pug')
   , async = require('async')
   , qs = require('querystring')
   , glob = require('glob')
-  , wrap = require('pug-runtime/wrap')
-	, runtime = require('pug-runtime')
+  , pug = require('jade')
+	, runtime = require('./node_modules/jade/runtime.js')
+//, wrap = require('jade-runtime/wrap')
   , parser = require('uglify-js').parser
   , compiler = require('uglify-js').uglify
   , Expose = require('./lib/expose')
