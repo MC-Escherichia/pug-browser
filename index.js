@@ -60,22 +60,27 @@ module.exports = function(exportPath, patterns, options){
 
       var getTemplate = function(filename, cb) {
 
-          fs.readFile(filename, 'ascii', function(err, content){
+          fs.readFile(filename, 'utf8', function(err, content){
               if (err) {
                   return cb(err);
               }
-              var transformedContent = preprocess(content);
-
-              var tmpl = pug.compileClient(transformedContent,
+              var transformedContent = preprocess(content),
+                  tmpl;
+              try {
+                  tmpl = pug.compileClient(transformedContent,
                                           {filename: filename,
                                            compileDebug: debug,
-                                           pretty: true,
-                                           externalRuntime: true,
-                                           //  inlineRuntimeFunctions: true
+                                           pretty: false,
+                                           externalRuntime: true
                                           });
+              } catch (e){
+                  console.error('Warning: ' + filename + 'could not be compiled');
+                  console.error(e);
+                  tmpl = '';}
 
-              var fn = wrap(tmpl);
 
+              //var fn = wrap(tmpl); // this appears necessary for newer versions of jade
+              var fn = new Function('jade',tmpl + '\n return template;' )(runtime);
             cb(null, {
                 filename: filename,
                 fn: fn
